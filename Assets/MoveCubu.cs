@@ -50,15 +50,7 @@ public class MoveCubu : MonoBehaviour {
         }
 
         //コライダーを有効にするか非有効にするか
-
-        if (setOff)
-        {
-            colliderOfGround.enabled = false;
-        }
-        if (!setOff)
-        {
-            colliderOfGround.enabled = true;
-        }
+        
     }
 
     void OnTriggerStay2D(Collider2D other)
@@ -66,6 +58,7 @@ public class MoveCubu : MonoBehaviour {
         if (other.gameObject.tag == "PersonTag")
         {
             setOff = true;
+            colliderOfGround.enabled = false;
         }
     }
 
@@ -74,6 +67,7 @@ public class MoveCubu : MonoBehaviour {
         if (other.gameObject.tag == "PersonTag")
         {
             setOff = false;
+            colliderOfGround.enabled = true;
         }
     }
 }

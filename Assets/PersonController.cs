@@ -2,29 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-public class PersonController : MonoBehaviour {
+using UnityEngine.SceneManagement;
 
-    Animator animator;
+public class PersonController : MonoBehaviour {
 
     Rigidbody2D rigid2D;
 
     GameObject gameOverText;
 
-    private double movableRange = 6;
+    //可動範囲
+    private double movableRange = 7;
 
+    //ジャンプのスピード
     private float jump = 13;
 
+    //スコアを取得
+    GameObject  scoreText;
 
-    public GameObject  scoreText;
+    //スコアの点数
+    private float maxY = 0f;
 
-    float maxY = 0f;
+    bool update = true;
 
+    private bool jp = false;
 
     private Transform personTrans;
 
+
     // Use this for initialization
     void Start () {
-        this.animator = GetComponent<Animator>();
 
         this.rigid2D = GetComponent<Rigidbody2D>();
 
@@ -40,59 +46,101 @@ public class PersonController : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-
-        if(this.transform.position.y >= maxY)
+        //y座標にいくほどスコアが加点されてく
+        if (this.transform.position.y >= maxY && update)
         {
             maxY = this.transform.position.y;
 
             scoreText.GetComponent<Text>().text = "Score:" + maxY;
         }
 
+        //画面外に出た時のx座標を決める
+        if (this.transform.position.x < -movableRange)
+        {
+            this.transform.position = new Vector3(7, this.transform.position.y, 0);
+        }
+        if (this.transform.position.x > movableRange)
+        {
+            this.transform.position = new Vector3(-7, this.transform.position.y, 0);
+        }
+
 
         //ボタンを押したときの処理
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && jp)
         {
             this.rigid2D.velocity = new Vector2(rigid2D.velocity.x, jump);
 
         }
-        if (Input.GetKey(KeyCode.RightArrow) && this.transform.position.x <movableRange)
+        if (Input.GetKey(KeyCode.RightArrow))
         {
             this.rigid2D.velocity = new Vector2(4, rigid2D.velocity.y);
         }
-        if (Input.GetKey(KeyCode.LeftArrow) && this.transform.position.x >-movableRange+0.5)
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
             this.rigid2D.velocity = new Vector2(-4, rigid2D.velocity.y);
         }
 
-       
+        //敵に当たって
+        if (this.rigid2D.freezeRotation == false)
+        {
+            //クリックされたらシーンをロードする（追加）
+            if (Input.GetMouseButtonDown(0))
+            {
+                //GameSceneを読み込む（追加）
+                SceneManager.LoadScene("GameScene");
+            }
+        }
+
+        
+        
+
 
     }
-
-
-    //ステージに乗ったときに子要素になる
+    //ステージに触れた時の処理
     void OnCollisionEnter2D(Collision2D other)
     {
 
+        //ステージに乗ったときにステージの子要素になる
         if (other.gameObject.tag == "MoveStageTag")
         {
             transform.SetParent(other.transform);
+
+            //ジャンプを解放する
+            jp = true;
         }
 
+        if (other.gameObject.tag == "BottomTag")
+        {
+            jp = true;
+        }
+
+        //敵に当たったときの処理
         if (other.gameObject.tag == "EnemyTag")
         {
+            update = false;
             gameOverText.GetComponent<Text>().text = "GameOver";
 
-            rigid2D.freezeRotation = false;
+            this.rigid2D.freezeRotation = false;
+
+
+
         }
     }
-    //ステージから出た時に親要素になる
+    //ステージから出た時に親要素に戻る
     void OnCollisionExit2D(Collision2D other)
     {
         if (other.gameObject.tag == "MoveStageTag")
         {
             transform.SetParent(null);
+
+            jp = false;
+        }
+        if (other.gameObject.tag == "BottomTag")
+        {
+            jp = false;
         }
     }
+
 
 }
 
